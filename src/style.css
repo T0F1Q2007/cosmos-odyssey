@@ -1,0 +1,733 @@
+/* ==========================================================================
+   Once UI Space Tokens & Global Reset (https://once-ui.com/)
+   ========================================================================== */
+:root {
+  --void-black: #020307;
+  --space-surface: rgba(8, 12, 22, 0.82);
+  --space-card: rgba(14, 20, 36, 0.88);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-focus: rgba(56, 189, 248, 0.45);
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --starlight-cyan: #38BDF8;
+  --solar-gold: #F59E0B;
+  --nebula-violet: #A855F7;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  background-color: var(--void-black);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Extended body height for smooth, cinematic scroll timeline progression */
+body {
+  height: 4800vh;
+}
+
+/* Fullscreen WebGL Canvas */
+#webgl-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Observatory Header HUD (Once UI Top Bar)
+   ========================================================================== */
+header {
+  position: fixed;
+  top: 1.5rem;
+  left: 0;
+  width: 100%;
+  padding: 0 2.5rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.observatory-badge {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--space-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.radar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--starlight-cyan);
+  box-shadow: 0 0 10px var(--starlight-cyan);
+  animation: radarPing 2.4s infinite ease-out;
+}
+
+@keyframes radarPing {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.observatory-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.observatory-telemetry {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+/* Header Controls Right */
+.header-controls {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Ambient Audio Toggle Button (Details.so Micro-Interaction) */
+.audio-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--space-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.audio-toggle-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  transform: scale(1.03);
+}
+
+.audio-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.audio-bar {
+  width: 2px;
+  height: 4px;
+  background: var(--text-secondary);
+  border-radius: 1px;
+  transition: height 0.2s ease;
+}
+
+.audio-toggle-btn.playing .audio-bar {
+  background: var(--starlight-cyan);
+  animation: soundBar 1.2s infinite ease-in-out alternate;
+}
+
+.audio-toggle-btn.playing .audio-bar:nth-child(1) { animation-delay: 0.0s; }
+.audio-toggle-btn.playing .audio-bar:nth-child(2) { animation-delay: 0.2s; }
+.audio-toggle-btn.playing .audio-bar:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes soundBar {
+  0% { height: 3px; }
+  100% { height: 12px; }
+}
+
+/* Survey Timer Indicator */
+.survey-clock {
+  background: var(--space-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  backdrop-filter: blur(16px);
+}
+
+.survey-clock.active {
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #d8b4fe;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+}
+
+/* ==========================================================================
+   Scroll Progress Track
+   ========================================================================== */
+.scroll-progress-line {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.04);
+  z-index: 60;
+}
+
+.scroll-progress-fill {
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(to bottom, var(--solar-gold), var(--starlight-cyan), var(--nebula-violet));
+  box-shadow: 0 0 8px var(--starlight-cyan);
+}
+
+/* ==========================================================================
+   Diegetic Planetary Telemetry Cards (Bklit UI + Once UI Styling)
+   ========================================================================== */
+.telemetry-card-container {
+  position: fixed;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(20px) scale(0.97);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.telemetry-card-container.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Dynamic Positioning Classes */
+.pos-center-bottom {
+  bottom: 3.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+}
+.pos-center-bottom.active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.pos-top-right {
+  top: 6rem;
+  right: 3.5rem;
+}
+
+.pos-bottom-left {
+  bottom: 4rem;
+  left: 3.5rem;
+}
+
+.pos-mid-right {
+  top: 38%;
+  right: 3.5rem;
+  transform: translateY(-50%) translateY(20px);
+}
+.pos-mid-right.active {
+  transform: translateY(-50%) translateY(0);
+}
+
+.pos-top-left {
+  top: 6rem;
+  left: 3.5rem;
+}
+
+.telemetry-card {
+  pointer-events: auto;
+  background: var(--space-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  width: 380px;
+  max-width: 90vw;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.card-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.eyebrow-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--starlight-cyan);
+}
+
+.distance-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+}
+
+.planet-name {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.35rem;
+  color: var(--text-primary);
+}
+
+.planet-tagline {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+/* Telemetry Grid (Bklit metrics layout) */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 1rem 0;
+  margin-bottom: 1.25rem;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.metric-val {
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+/* Bklit SVG Telemetry Sparkline / Atmosphere Bar */
+.telemetry-chart-wrapper {
+  margin-top: 0.5rem;
+}
+
+.chart-title {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.bklit-sparkline {
+  width: 100%;
+  height: 48px;
+}
+
+/* Atmospheric Breakdown Bar */
+.atmosphere-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.atmo-segment {
+  height: 100%;
+}
+
+.atmo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.atmo-legend span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   15-Second Dynamic Deep-Sky Discovery Engine
+   ========================================================================== */
+.deep-sky-overlay-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.galaxy-reticle-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.galaxy-reticle-marker.visible {
+  opacity: 1;
+}
+
+/* Target Crosshair Circle */
+.reticle-bracket {
+  width: 52px;
+  height: 52px;
+  border: 1px dashed rgba(168, 85, 247, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: reticleSpin 20s linear infinite;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
+}
+
+@keyframes reticleSpin {
+  100% { transform: rotate(360deg); }
+}
+
+.reticle-center-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #c084fc;
+  box-shadow: 0 0 8px #c084fc;
+}
+
+/* Telemetry Tag Beneath the Galaxy */
+.galaxy-label-tag {
+  margin-top: 10px;
+  background: rgba(10, 14, 26, 0.88);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.galaxy-label-tag:hover {
+  transform: scale(1.05);
+  border-color: rgba(168, 85, 247, 0.9);
+}
+
+.galaxy-name {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f3e8ff;
+  letter-spacing: 0.5px;
+}
+
+.galaxy-meta {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: #a855f7;
+  margin-top: 2px;
+}
+
+/* Dynamic 15s Notification Toast */
+.discovery-scan-toast {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: rgba(18, 14, 32, 0.92);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 9999px;
+  padding: 0.65rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: #e9d5ff;
+  z-index: 55;
+  box-shadow: 0 0 32px rgba(168, 85, 247, 0.3);
+  backdrop-filter: blur(16px);
+  opacity: 0;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.discovery-scan-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.scan-pulse-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c084fc;
+  box-shadow: 0 0 10px #c084fc;
+}
+
+/* ==========================================================================
+   Scroll Hint (Hero Center Bottom)
+   ========================================================================== */
+.scroll-hero-hint {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.5s ease;
+}
+
+.scroll-hero-hint span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+.scroll-arrow-down {
+  width: 14px;
+  height: 14px;
+  border-bottom: 2px solid var(--starlight-cyan);
+  border-right: 2px solid var(--starlight-cyan);
+  transform: rotate(45deg);
+  animation: arrowBounce 1.8s infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateY(0) rotate(45deg); opacity: 0.4; }
+  50% { transform: translateY(8px) rotate(45deg); opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  header {
+    padding: 0 1.25rem;
+    top: 1rem;
+  }
+  .telemetry-card-container {
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: 2rem !important;
+    transform: translateX(-50%) translateY(20px) !important;
+  }
+  .telemetry-card-container.active {
+    transform: translateX(-50%) translateY(0) !important;
+  }
+  .telemetry-card {
+    width: 92vw;
+    padding: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   Celestial Waypoint Scrubber & Target Lock HUD
+   ========================================================================== */
+
+/* Target Lock Status Pill (Top Center Header) */
+.target-status-pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--space-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 0.45rem 1.15rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.target-status-pill.locked {
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+}
+
+.target-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.target-status-pill.in-transit .target-status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: transitPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes transitPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+.target-status-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.acoustic-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--starlight-cyan);
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+/* Audio Control Wrapper */
+.audio-control-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--space-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(16px);
+}
+
+.audio-control-wrapper .audio-toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.audio-vol-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 60px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.audio-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--starlight-cyan);
+  box-shadow: 0 0 6px var(--starlight-cyan);
+  cursor: pointer;
+}
+
+/* 3D Target Lock Overlay Ring around Focused Planet */
+.focal-target-reticle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.focal-target-reticle.active {
+  opacity: 1;
+}
+
+.target-bracket {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--starlight-cyan);
+}
+
+.bracket-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+.bracket-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+.bracket-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+.bracket-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+.target-lock-label {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  color: var(--starlight-cyan);
+  white-space: nowrap;
+  background: rgba(2, 4, 8, 0.85);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}

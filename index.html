@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COSMOS — The Celestial Odyssey</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- Fullscreen Three.js WebGL Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Scroll Progress Line (Right edge) -->
+    <div class="scroll-progress-line">
+      <div class="scroll-progress-fill" id="scrollProgressFill"></div>
+    </div>
+
+    <!-- Clean Minimal Header: Ambient Audio Mute Control Only -->
+    <header>
+      <div class="header-controls">
+        <div class="audio-control-wrapper">
+          <button class="audio-toggle-btn" id="audioToggleBtn" title="Toggle Celestial Soundscape">
+            <div class="audio-bars">
+              <span class="audio-bar"></span>
+              <span class="audio-bar"></span>
+              <span class="audio-bar"></span>
+            </div>
+            <span id="audioStatus">AUDIO: MUTED</span>
+          </button>
+          <input type="range" class="audio-vol-slider" id="audioVolSlider" min="0" max="1" step="0.05" value="0.85" title="Volume Slider" />
+        </div>
+      </div>
+    </header>
+
+    <!-- Scroll Hint (Centered bottom, fades out when scrolled) -->
+    <div class="scroll-hero-hint" id="scrollHint">
+      <span>Scroll To Navigate Planetary Vectors</span>
+      <div class="scroll-arrow-down"></div>
+    </div>
+
+    <!-- 15-Second Dynamic Deep-Sky Discovery Reticles Layer -->
+    <div class="deep-sky-overlay-layer" id="galaxyMarkers">
+      <!-- Andromeda (M31) -->
+      <div class="galaxy-reticle-marker" id="marker-andromeda">
+        <div class="reticle-bracket">
+          <div class="reticle-center-dot"></div>
+        </div>
+        <div class="galaxy-label-tag">
+          <div class="galaxy-name">Andromeda Galaxy (M31)</div>
+          <div class="galaxy-meta">2.537 Mly • Heading toward Milky Way</div>
+        </div>
+      </div>
+
+      <!-- Whirlpool (M51) -->
+      <div class="galaxy-reticle-marker" id="marker-whirlpool">
+        <div class="reticle-bracket">
+          <div class="reticle-center-dot"></div>
+        </div>
+        <div class="galaxy-label-tag">
+          <div class="galaxy-name">Whirlpool Galaxy (M51)</div>
+          <div class="galaxy-meta">23.16 Mly • Interacting Spiral Arms</div>
+        </div>
+      </div>
+
+      <!-- Sombrero (M104) -->
+      <div class="galaxy-reticle-marker" id="marker-sombrero">
+        <div class="reticle-bracket">
+          <div class="reticle-center-dot"></div>
+        </div>
+        <div class="galaxy-label-tag">
+          <div class="galaxy-name">Sombrero Galaxy (M104)</div>
+          <div class="galaxy-meta">31.13 Mly • Massive Dark Dust Lane</div>
+        </div>
+      </div>
+
+      <!-- Triangulum (M33) -->
+      <div class="galaxy-reticle-marker" id="marker-triangulum">
+        <div class="reticle-bracket">
+          <div class="reticle-center-dot"></div>
+        </div>
+        <div class="galaxy-label-tag">
+          <div class="galaxy-name">Triangulum Galaxy (M33)</div>
+          <div class="galaxy-meta">2.73 Mly • Stellar Nursery Clusters</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic 15-Second Notification Toast -->
+    <div class="discovery-scan-toast" id="discoveryToast">
+      <div class="scan-pulse-icon"></div>
+      <span>Deep Sky Spectral Survey Active • 4 Background Galaxies Cataloged</span>
+    </div>
+
+    <!-- ====================================================================
+         Diegetic Planetary Telemetry Cards (Once UI + Bklit UI Styling)
+         ==================================================================== -->
+
+    <!-- Phase 0: The Solar Core -->
+    <div class="telemetry-card-container pos-center-bottom" id="card-sun">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">STELLAR ANCHOR</span>
+          <span class="distance-tag">0.00 AU</span>
+        </div>
+        <h2 class="planet-name">The Sun</h2>
+        <p class="planet-tagline">G2V main-sequence yellow dwarf fusing 600 million tons of hydrogen every second.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Surface Temp</div>
+            <div class="metric-val" style="color:#f59e0b">5,778 K</div>
+          </div>
+          <div>
+            <div class="metric-label">Solar Radius</div>
+            <div class="metric-val">696,340 km</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Core Granulation Turbulence</span>
+            <span style="color:#f59e0b">99.4% Fused</span>
+          </div>
+          <svg class="bklit-sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sunGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,35 Q 40,12 80,26 T 160,8 T 240,22 T 300,10 L 300,48 L 0,48 Z" fill="url(#sunGrad)" />
+            <path d="M 0,35 Q 40,12 80,26 T 160,8 T 240,22 T 300,10" fill="none" stroke="#f59e0b" stroke-width="2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 1: Mercury & Venus -->
+    <div class="telemetry-card-container pos-top-right" id="card-mercury">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">INNER TERRESTRIAL</span>
+          <span class="distance-tag">0.39 – 0.72 AU</span>
+        </div>
+        <h2 class="planet-name">Mercury & Venus</h2>
+        <p class="planet-tagline">Extreme thermal contrasts: airless cratered basalt meets a runaway greenhouse furnace.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Venus Peak Heat</div>
+            <div class="metric-val" style="color:#eab308">465 °C</div>
+          </div>
+          <div>
+            <div class="metric-label">Mercury Orbit</div>
+            <div class="metric-val">47.36 km/s</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Atmospheric Composition</span>
+            <span style="color:#ca8a04">96.5% CO₂</span>
+          </div>
+          <div class="atmosphere-bar">
+            <div class="atmo-segment" style="width: 96%; background: #eab308;"></div>
+            <div class="atmo-segment" style="width: 3.5%; background: #38bdf8;"></div>
+            <div class="atmo-segment" style="width: 0.5%; background: #a855f7;"></div>
+          </div>
+          <div class="atmo-legend">
+            <span><span class="dot" style="background:#eab308"></span>CO₂ (96.5%)</span>
+            <span><span class="dot" style="background:#38bdf8"></span>N₂ (3.5%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2: Earth & Moon -->
+    <div class="telemetry-card-container pos-bottom-left" id="card-earth">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">HABITABLE OASIS</span>
+          <span class="distance-tag">1.00 AU</span>
+        </div>
+        <h2 class="planet-name">Terra & Luna</h2>
+        <p class="planet-tagline">The only known world harboring active biological life, dynamic oceans, and plate tectonics.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Orbital Speed</div>
+            <div class="metric-val" style="color:#38bdf8">29.78 km/s</div>
+          </div>
+          <div>
+            <div class="metric-label">Axial Tilt</div>
+            <div class="metric-val">23.44°</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Atmospheric Ratio</span>
+            <span style="color:#38bdf8">78.1% N₂</span>
+          </div>
+          <div class="atmosphere-bar">
+            <div class="atmo-segment" style="width: 78%; background: #38bdf8;"></div>
+            <div class="atmo-segment" style="width: 21%; background: #10b981;"></div>
+            <div class="atmo-segment" style="width: 1%; background: #f59e0b;"></div>
+          </div>
+          <div class="atmo-legend">
+            <span><span class="dot" style="background:#38bdf8"></span>N₂ (78%)</span>
+            <span><span class="dot" style="background:#10b981"></span>O₂ (21%)</span>
+            <span><span class="dot" style="background:#f59e0b"></span>Ar (0.9%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Mars -->
+    <div class="telemetry-card-container pos-mid-right" id="card-mars">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">RUSTED DESERT</span>
+          <span class="distance-tag">1.52 AU</span>
+        </div>
+        <h2 class="planet-name">Mars</h2>
+        <p class="planet-tagline">Iron-oxide dust wastes crowned by Olympus Mons, the largest volcano in the solar system.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Olympus Mons</div>
+            <div class="metric-val" style="color:#ef4444">21.9 km</div>
+          </div>
+          <div>
+            <div class="metric-label">Day Length</div>
+            <div class="metric-val">24h 37m</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Surface Pressure</span>
+            <span style="color:#ef4444">0.006 Atm</span>
+          </div>
+          <svg class="bklit-sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="marsGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ef4444" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#ef4444" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,38 Q 60,30 120,18 T 220,12 T 300,28 L 300,48 L 0,48 Z" fill="url(#marsGrad)" />
+            <path d="M 0,38 Q 60,30 120,18 T 220,12 T 300,28" fill="none" stroke="#ef4444" stroke-width="2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4: Jupiter -->
+    <div class="telemetry-card-container pos-top-left" id="card-jupiter">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">GAS TITAN</span>
+          <span class="distance-tag">5.20 AU</span>
+        </div>
+        <h2 class="planet-name">Jupiter</h2>
+        <p class="planet-tagline">Colossal storm bands housing the Great Red Spot — an anticyclone larger than Earth.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Mass Equiv</div>
+            <div class="metric-val" style="color:#d97706">317.8 ⊕</div>
+          </div>
+          <div>
+            <div class="metric-label">Galilean Moons</div>
+            <div class="metric-val">95 Known</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Atmospheric Composition</span>
+            <span style="color:#d97706">89.8% H₂</span>
+          </div>
+          <div class="atmosphere-bar">
+            <div class="atmo-segment" style="width: 90%; background: #d97706;"></div>
+            <div class="atmo-segment" style="width: 10%; background: #fef3c7;"></div>
+          </div>
+          <div class="atmo-legend">
+            <span><span class="dot" style="background:#d97706"></span>H₂ (90%)</span>
+            <span><span class="dot" style="background:#fef3c7"></span>He (10%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 5: Saturn -->
+    <div class="telemetry-card-container pos-bottom-left" id="card-saturn">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">RINGED MAJESTY</span>
+          <span class="distance-tag">9.58 AU</span>
+        </div>
+        <h2 class="planet-name">Saturn</h2>
+        <p class="planet-tagline">Adorned by billions of water-ice ring particles spanning 282,000 kilometers across space.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Ring Span</div>
+            <div class="metric-val" style="color:#fde047">282,000 km</div>
+          </div>
+          <div>
+            <div class="metric-label">Density</div>
+            <div class="metric-val">0.687 g/cm³</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Ring Density Spectrum</span>
+            <span style="color:#fde047">Cassini Gap: 4,800km</span>
+          </div>
+          <svg class="bklit-sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="satGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fde047" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#fde047" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,22 Q 40,8 90,14 L 140,44 L 170,16 T 240,24 T 300,40 L 300,48 L 0,48 Z" fill="url(#satGrad)" />
+            <path d="M 0,22 Q 40,8 90,14 L 140,44 L 170,16 T 240,24 T 300,40" fill="none" stroke="#fde047" stroke-width="2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 6: Ice Giants (Uranus & Neptune) -->
+    <div class="telemetry-card-container pos-top-right" id="card-ice">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">ICE FRONTIER</span>
+          <span class="distance-tag">19.2 – 30.1 AU</span>
+        </div>
+        <h2 class="planet-name">Uranus & Neptune</h2>
+        <p class="planet-tagline">Frozen ammonia-water mantles and supersonic methane winds exceeding 2,100 km/h.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Uranus Tilt</div>
+            <div class="metric-val" style="color:#38bdf8">97.77°</div>
+          </div>
+          <div>
+            <div class="metric-label">Neptune Wind</div>
+            <div class="metric-val" style="color:#2563eb">2,100 km/h</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Thermal Reading</span>
+            <span style="color:#38bdf8">-214 °C Average</span>
+          </div>
+          <svg class="bklit-sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="iceGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,18 Q 80,32 160,20 T 300,34 L 300,48 L 0,48 Z" fill="url(#iceGrad)" />
+            <path d="M 0,18 Q 80,32 160,20 T 300,34" fill="none" stroke="#38bdf8" stroke-width="2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 7: Andromeda Galaxy (M31) -->
+    <div class="telemetry-card-container pos-top-right" id="card-andromeda">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">MAJOR SPIRAL GALAXY</span>
+          <span class="distance-tag">2.537 Mly</span>
+        </div>
+        <h2 class="planet-name">Andromeda (M31)</h2>
+        <p class="planet-tagline">Tilted giant barred spiral housing one trillion stars, gravitationally bound to merge with the Milky Way in 4.5 billion years.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Stellar Population</div>
+            <div class="metric-val" style="color:#818cf8">1 Trillion ★</div>
+          </div>
+          <div>
+            <div class="metric-label">Diameter</div>
+            <div class="metric-val">220,000 ly</div>
+          </div>
+        </div>
+        <div class="telemetry-chart-wrapper">
+          <div class="chart-title">
+            <span>Approach Velocity</span>
+            <span style="color:#818cf8">-110 km/s Blueshift</span>
+          </div>
+          <svg class="bklit-sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="andGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#818cf8" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#818cf8" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,35 Q 60,10 120,22 T 220,8 T 300,18 L 300,48 L 0,48 Z" fill="url(#andGrad)" />
+            <path d="M 0,35 Q 60,10 120,22 T 220,8 T 300,18" fill="none" stroke="#818cf8" stroke-width="2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 8: Whirlpool Galaxy (M51) -->
+    <div class="telemetry-card-container pos-bottom-left" id="card-whirlpool">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">GRAND-DESIGN SPIRAL</span>
+          <span class="distance-tag">23.16 Mly</span>
+        </div>
+        <h2 class="planet-name">Whirlpool (M51)</h2>
+        <p class="planet-tagline">Face-on interacting spiral with sweeping density wave arms traced by glowing ruby H II starburst nebulae and companion dwarf NGC 5195.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Tidal Companion</div>
+            <div class="metric-val" style="color:#f472b6">NGC 5195</div>
+          </div>
+          <div>
+            <div class="metric-label">Star Formation</div>
+            <div class="metric-val">4.5 M☉/yr</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 9: Sombrero Galaxy (M104) -->
+    <div class="telemetry-card-container pos-top-left" id="card-sombrero">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">LENTICULAR GIANT</span>
+          <span class="distance-tag">31.13 Mly</span>
+        </div>
+        <h2 class="planet-name">Sombrero (M104)</h2>
+        <p class="planet-tagline">Colossal spherical nuclear bulbous bulge bisected by a dramatic, razor-sharp equatorial absorption lane of interstellar dust.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Central SMBH</div>
+            <div class="metric-val" style="color:#f59e0b">1 Billion M☉</div>
+          </div>
+          <div>
+            <div class="metric-label">Globular Clusters</div>
+            <div class="metric-val">~2,000 Known</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 10: Triangulum Galaxy (M33) -->
+    <div class="telemetry-card-container pos-mid-right" id="card-triangulum">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">STELLAR NURSERY</span>
+          <span class="distance-tag">2.73 Mly</span>
+        </div>
+        <h2 class="planet-name">Triangulum (M33)</h2>
+        <p class="planet-tagline">Gas-rich flocculent cyan spiral housing NGC 604 — one of the largest and most luminous giant starburst emission complexes known.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Giant H II Complex</div>
+            <div class="metric-val" style="color:#38bdf8">NGC 604 (1,500 ly)</div>
+          </div>
+          <div>
+            <div class="metric-label">Local Group Rank</div>
+            <div class="metric-val">3rd Largest</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 11: The Milky Way Galaxy (Our Home) & Cosmic Web Macrocosm -->
+    <div class="telemetry-card-container pos-center-bottom" id="card-deep-sky">
+      <div class="telemetry-card">
+        <div class="card-eyebrow">
+          <span class="eyebrow-tag">OUR HOME GALAXY</span>
+          <span class="distance-tag">0.00 Mly • Orion-Cygnus Spur</span>
+        </div>
+        <h2 class="planet-name">The Milky Way</h2>
+        <p class="planet-tagline">Our home barred spiral galaxy housing 400 billion stars. Our Solar System orbits the supermassive black hole Sagittarius A* from the Orion Arm, framed within the grand cosmic web.</p>
+        <div class="telemetry-grid">
+          <div>
+            <div class="metric-label">Stellar Population</div>
+            <div class="metric-val" style="color:#a855f7">400 Billion ★</div>
+          </div>
+          <div>
+            <div class="metric-label">Supermassive Core</div>
+            <div class="metric-val">Sagittarius A*</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
