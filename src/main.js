@@ -1078,9 +1078,9 @@ function animate() {
   // Dynamic Milky Way disc opacity based on camera altitude / scroll progress
   if (smoothScrollProgress > 0.75) {
     const fade = Math.min(1.0, (smoothScrollProgress - 0.75) / 0.22);
-    milkyWayMat.opacity = 0.15 + 0.80 * fade;
+    milkyWayMat.opacity = fade * 0.95;
   } else {
-    milkyWayMat.opacity = 0.15;
+    milkyWayMat.opacity = 0;
   }
   milkyWayMesh.rotation.z += 0.0003;
 
