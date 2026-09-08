@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cosmicAudio } from './core/audio-engine.js';
@@ -449,6 +452,22 @@ planetDefinitions.forEach((def) => {
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(def.radius, 48, 48), mat);
   mesh.rotation.z = def.tilt;
   group.add(mesh);
+
+  // Moons for Jupiter and Saturn
+  if (def.id === 'jupiter') {
+    const europaMat = new THREE.MeshStandardMaterial({ color: 0xddddcc, roughness: 0.8 });
+    const europaMesh = new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 24), europaMat);
+    europaMesh.position.set(1.8, 0, 0);
+    group.add(europaMesh);
+    group.userData.europa = europaMesh;
+  }
+  if (def.id === 'saturn') {
+    const titanMat = new THREE.MeshStandardMaterial({ color: 0xeecc77, roughness: 0.9 });
+    const titanMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 24), titanMat);
+    titanMesh.position.set(3.2, 0.2, 0);
+    group.add(titanMesh);
+    group.userData.titan = titanMesh;
+  }
 
   // Earth Atmosphere, Dynamic Clouds & Moon
   if (def.hasAtmosphere) {
@@ -919,6 +938,45 @@ if (audioVolSlider) {
   });
 }
 
+// ─── Asteroid Belt & Comets ───────────────────────────────────────────────────
+const asteroidCount = 1200;
+const asteroidGeo = new THREE.DodecahedronGeometry(0.04, 0);
+const asteroidMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9, metalness: 0.1 });
+const asteroidMesh = new THREE.InstancedMesh(asteroidGeo, asteroidMat, asteroidCount);
+const dummy = new THREE.Object3D();
+const asteroidData = [];
+for (let i = 0; i < asteroidCount; i++) {
+  const r = 12.0 + Math.random() * 2.0;
+  const theta = Math.random() * Math.PI * 2;
+  const y = (Math.random() - 0.5) * 0.8;
+  const speed = (0.01 + Math.random() * 0.01);
+  asteroidData.push({ r, theta, y, speed });
+  dummy.position.set(Math.cos(theta) * r, y, Math.sin(theta) * r);
+  dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+  const scale = 0.5 + Math.random();
+  dummy.scale.set(scale, scale, scale);
+  dummy.updateMatrix();
+  asteroidMesh.setMatrixAt(i, dummy.matrix);
+}
+scene.add(asteroidMesh);
+
+const cometCount = 5;
+const comets = [];
+for (let i = 0; i < cometCount; i++) {
+  const cometGeo = new THREE.SphereGeometry(0.08, 16, 16);
+  const cometMat = new THREE.MeshStandardMaterial({ color: 0x88ccff, emissive: 0x2288ff });
+  const comet = new THREE.Mesh(cometGeo, cometMat);
+  comet.userData = {
+    angle: Math.random() * Math.PI * 2,
+    speed: 0.005 + Math.random() * 0.005,
+    a: 25 + Math.random() * 10, // semi-major axis
+    e: 0.6 + Math.random() * 0.3, // eccentricity
+    tilt: (Math.random() - 0.5) * 0.5 // orbital tilt
+  };
+  comets.push(comet);
+  scene.add(comet);
+}
+
 // ─── 9. Real-Time Animation Loop (Gravitation & Orbital Tracking) ─────────────
 const clock = new THREE.Clock();
 
@@ -954,6 +1012,48 @@ function animate() {
       );
       p.group.userData.moon.rotation.y += 0.005;
     }
+
+    if (p.group.userData.europa) {
+      const europaAngle = time * 0.6;
+      p.group.userData.europa.position.set(
+        Math.cos(europaAngle) * 1.8,
+        0,
+        Math.sin(europaAngle) * 1.8
+      );
+    }
+    if (p.group.userData.titan) {
+      const titanAngle = time * 0.35;
+      p.group.userData.titan.position.set(
+        Math.cos(titanAngle) * 3.2,
+        0.2,
+        Math.sin(titanAngle) * 3.2
+      );
+    }
+  });
+
+  // Animate Asteroids
+  for (let i = 0; i < asteroidCount; i++) {
+    const data = asteroidData[i];
+    data.theta += data.speed * delta;
+    dummy.position.set(Math.cos(data.theta) * data.r, data.y, Math.sin(data.theta) * data.r);
+    asteroidMesh.getMatrixAt(i, dummy.matrix);
+    dummy.updateMatrix();
+    asteroidMesh.setMatrixAt(i, dummy.matrix);
+  }
+  asteroidMesh.instanceMatrix.needsUpdate = true;
+
+  // Animate Comets
+  comets.forEach(comet => {
+    comet.userData.angle += comet.userData.speed * delta * 60;
+    const a = comet.userData.a;
+    const e = comet.userData.e;
+    const theta = comet.userData.angle;
+    const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+    comet.position.set(
+      Math.cos(theta) * r,
+      Math.sin(theta) * r * comet.userData.tilt,
+      Math.sin(theta) * r
+    );
   });
 
   // 3. Smooth Camera Navigation Locked to Active Orbiting Targets
@@ -975,16 +1075,19 @@ function animate() {
   // 4. Update Screen Tracking for Galaxy Reticles
   updateScreenTracking();
 
-  renderer.render(scene, camera);
+  composer.render();
 }
 
 animate();
 
 // Window resize handler
 window.addEventListener('resize', () => {
+  
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if(typeof composer !== 'undefined') composer.setSize(window.innerWidth, window.innerHeight);
+
 });
 
 
